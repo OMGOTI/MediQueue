@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@(ViewData["Title"] == null ? "MediQueue" : ViewData["Title"] + " · MediQueue")</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+<header class="topbar">
+    <div class="wrap topbar-in">
+        <a class="brand" asp-controller="Home" asp-action="Index"><span class="brand-mark">+</span> MediQueue</a>
+        <button class="menu-btn" type="button" aria-label="Menu" data-menu>☰</button>
+        <nav class="nav" id="nav">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <a asp-controller="Token" asp-action="Create">Get a token</a>
+            <a asp-controller="Token" asp-action="Track">Track my token</a>
+            <a asp-controller="Display" asp-action="Index">Display board</a>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                if (User.IsInRole(Roles.Admin))
+                {
+                    <a asp-controller="Admin" asp-action="Index">Admin</a>
+                    <a asp-controller="Reception" asp-action="Index">Reception</a>
+                }
+                else if (User.IsInRole(Roles.Reception))
+                {
+                    <a asp-controller="Reception" asp-action="Index">Reception</a>
+                }
+                else if (User.IsInRole(Roles.Doctor))
+                {
+                    <a asp-controller="Doctor" asp-action="Index">My queue</a>
+                }
+                <form asp-controller="Account" asp-action="Logout" method="post" class="inline">
+                    <button class="nav-btn" type="submit">Logout (@User.Identity!.Name)</button>
+                </form>
+            }
+            else
+            {
+                <a class="nav-cta" asp-controller="Account" asp-action="Login">Staff login</a>
+            }
+        </nav>
+    </div>
+</header>
+
+<main class="wrap main">
+    @if (TempData["Ok"] is string ok)
+    {
+        <div class="flash flash-ok" role="status">@ok</div>
+    }
+    @if (TempData["Err"] is string err)
+    {
+        <div class="flash flash-err" role="alert">@err</div>
+    }
+    @RenderBody()
+</main>
+
+<footer class="footer">
+    <div class="wrap">MediQueue · Smart Hospital Queue System · Live queue updates, fair priority and honest waiting times.</div>
+</footer>
+
+<script src="~/lib/signalr/signalr.min.js"></script>
+<script src="~/lib/qrcode/qrcode.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+<script src="~/js/live.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

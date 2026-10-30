@@ -1,0 +1,54 @@
+@model TokenForm
+@{
+    ViewData["Title"] = "Get a token";
+    var boards = (List<DeptBoard>)ViewBag.Boards;
+}
+<div class="form-mid">
+<h1>Get a token</h1>
+<p class="muted">Takes 20 seconds. You will get a page that shows your turn live.</p>
+
+<form asp-action="Create" method="post" class="card" novalidate>
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="errors"><ul>
+        @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors)) { <li>@e.ErrorMessage</li> }
+        </ul></div>
+    }
+    <label>1. Choose department</label>
+    <div class="grid g2 mb">
+    @foreach (var d in boards)
+    {
+        var open = d.AcceptingTokens && d.ServersOnDuty > 0;
+        <label class="dept-radio @(open ? "" : "closed")" style="font-weight:400">
+            <input type="radio" name="DepartmentId" value="@d.Id" checked="@(Model.DepartmentId == d.Id)" disabled="@(!open)" />
+            <div class="card">
+                <div class="dept-head"><div class="dept-icon">@d.Icon</div>
+                    <div><div class="dept-name">@d.Name</div>
+                    <div class="dept-room">@(open ? $"{d.WaitingCount} waiting · about {Ui.Eta(d.EstWaitNew)}" : (d.AcceptingTokens ? "No doctor on duty" : "Not taking tokens"))</div></div>
+                </div>
+            </div>
+        </label>
+    }
+    </div>
+
+    <div class="field"><label asp-for="Name">2. Patient name</label><input asp-for="Name" type="text" autocomplete="name" /></div>
+    <div class="grid g2">
+        <div class="field"><label asp-for="Phone">Mobile number (10 digits)</label><input asp-for="Phone" type="tel" inputmode="numeric" maxlength="10" autocomplete="tel" /></div>
+        <div class="field"><label asp-for="Age">Age</label><input asp-for="Age" type="number" min="0" max="120" /></div>
+    </div>
+    <div class="grid g2">
+        <div class="field"><label asp-for="Gender">Gender</label>
+            <select asp-for="Gender"><option value="">Prefer not to say</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+        <div class="field"><label asp-for="Priority">Priority</label>
+            <select asp-for="Priority">
+                <option value="Normal">Normal</option>
+                <option value="Senior">Senior citizen (60+)</option>
+                <option value="Pregnant">Pregnant woman</option>
+                <option value="Disabled">Person with disability</option>
+            </select></div>
+    </div>
+    <div class="field"><label asp-for="Reason">Reason for visit (optional)</label><input asp-for="Reason" type="text" maxlength="120" placeholder="e.g. fever since 2 days" /></div>
+    <p class="muted small">In an emergency do not wait in line: go straight to the reception desk.</p>
+    <button class="btn btn-lg" type="submit">Get my token</button>
+</form>
+</div>

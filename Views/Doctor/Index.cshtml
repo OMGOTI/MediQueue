@@ -1,0 +1,5 @@
+@model DoctorPanel
+@{ ViewData["Title"] = "My queue"; }
+<div data-live-url="@Url.Action("Partial", "Doctor")" data-live-dept="@Model.DepartmentId">
+    @await Html.PartialAsync("_DoctorPanel", Model)
+</div>

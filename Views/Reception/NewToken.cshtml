@@ -1,0 +1,40 @@
+@model TokenForm
+@{
+    ViewData["Title"] = "Walk-in token";
+    var depts = (List<Department>)ViewBag.Departments;
+}
+<div class="form-mid">
+<h1>Walk-in token</h1>
+<p class="muted">For patients who come to the desk. Emergency patients are placed first in the queue.</p>
+<form asp-action="NewToken" method="post" class="card" novalidate>
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="errors"><ul>
+        @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors)) { <li>@e.ErrorMessage</li> }
+        </ul></div>
+    }
+    <div class="grid g2">
+        <div class="field"><label asp-for="DepartmentId">Department</label>
+            <select asp-for="DepartmentId">
+                <option value="">Choose…</option>
+                @foreach (var d in depts) { <option value="@d.Id" selected="@(Model.DepartmentId == d.Id)">@d.Icon @d.Name (@d.Room)</option> }
+            </select></div>
+        <div class="field"><label asp-for="Priority">Priority</label>
+            <select asp-for="Priority">
+                @foreach (var p in Enum.GetValues<PriorityLevel>()) { <option value="@p">@Ui.PriorityText(p)</option> }
+            </select></div>
+    </div>
+    <div class="field"><label asp-for="Name">Patient name</label><input asp-for="Name" type="text" autofocus /></div>
+    <div class="grid g3">
+        <div class="field"><label asp-for="Phone">Mobile (10 digits)</label><input asp-for="Phone" type="tel" inputmode="numeric" maxlength="10" /></div>
+        <div class="field"><label asp-for="Age">Age</label><input asp-for="Age" type="number" min="0" max="120" /></div>
+        <div class="field"><label asp-for="Gender">Gender</label>
+            <select asp-for="Gender"><option value="">–</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+    </div>
+    <div class="field"><label asp-for="Reason">Reason (optional)</label><input asp-for="Reason" type="text" maxlength="120" /></div>
+    <div class="row">
+        <button class="btn" type="submit">Create token</button>
+        <a class="btn btn-light" asp-action="Index">Back</a>
+    </div>
+</form>
+</div>

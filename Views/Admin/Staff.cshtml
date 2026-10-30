@@ -1,0 +1,65 @@
+@model List<StaffRow>
+@{
+    ViewData["Title"] = "Staff";
+    var depts = (List<Department>)ViewBag.Departments;
+    var me = User.StaffId();
+}
+<div class="row between mb">
+    <h1>Staff accounts</h1>
+    <a class="btn btn-light" asp-action="Index">← Dashboard</a>
+</div>
+
+<div class="card mb">
+    <div class="tbl-wrap"><table>
+        <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Department</th><th>Status</th><th>New password</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var s in Model)
+        {
+            <tr>
+                <td><b>@s.FullName</b></td>
+                <td>@s.Username@(s.IsDemoPassword ? Html.Raw(" <span class=\"badge st-called\">demo password</span>") : null)</td>
+                <td>@s.Role</td>
+                <td>@s.DepartmentName@(s.Room != "" ? " · " + s.Room : "")</td>
+                <td>
+                    @if (!s.IsActive) { <span class="badge st-cancelled">Disabled</span> }
+                    else if (s.Role == Roles.Doctor) { <span class="badge @(s.OnDuty ? "st-completed" : "st-called")">@(s.OnDuty ? "On duty" : "On break")</span> }
+                    else { <span class="badge st-completed">Active</span> }
+                </td>
+                <td>
+                    <form asp-action="ResetPassword" method="post" class="row" style="flex-wrap:nowrap;gap:6px">
+                        <input type="hidden" name="id" value="@s.Id" />
+                        <input type="password" name="newPassword" placeholder="min 6 characters" minlength="6" required style="width:150px;padding:6px 8px" autocomplete="new-password" />
+                        <button class="btn btn-light btn-sm" type="submit">Set</button>
+                    </form>
+                </td>
+                <td>
+                    @if (s.Id != me)
+                    {
+                        <form asp-action="SetActive" method="post">
+                            <input type="hidden" name="id" value="@s.Id" /><input type="hidden" name="active" value="@((!s.IsActive).ToString().ToLower())" />
+                            <button class="btn btn-sm @(s.IsActive ? "btn-red" : "")" type="submit">@(s.IsActive ? "Disable" : "Enable")</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table></div>
+</div>
+
+<div class="card form-mid">
+    <h2>Add a staff member</h2>
+    <form asp-action="CreateStaff" method="post">
+        <div class="grid g2">
+            <div class="field"><label for="FullName">Full name</label><input id="FullName" name="FullName" type="text" required /></div>
+            <div class="field"><label for="Username">Username (small letters)</label><input id="Username" name="Username" type="text" required pattern="[a-z0-9._\-]{3,30}" autocapitalize="none" /></div>
+            <div class="field"><label for="Role">Role</label>
+                <select id="Role" name="Role"><option value="@Roles.Doctor">Doctor</option><option value="@Roles.Reception">Reception</option><option value="@Roles.Admin">Admin</option></select></div>
+            <div class="field"><label for="DepartmentId">Department (doctors)</label>
+                <select id="DepartmentId" name="DepartmentId"><option value="">–</option>@foreach (var d in depts) { <option value="@d.Id">@d.Name</option> }</select></div>
+            <div class="field"><label for="Room">Room (doctors)</label><input id="Room" name="Room" type="text" placeholder="Room 2" /></div>
+            <div class="field"><label for="Password">Password</label><input id="Password" name="Password" type="password" minlength="6" required autocomplete="new-password" /></div>
+        </div>
+        <button class="btn" type="submit">Add</button>
+    </form>
+</div>

@@ -1,0 +1,23 @@
+@model List<DeptBoard>
+<div class="grid gauto">
+@foreach (var d in Model)
+{
+    <div class="card dept">
+        <div class="dept-head">
+            <div class="dept-icon">@d.Icon</div>
+            <div><div class="dept-name">@d.Name</div><div class="dept-room">@d.Room</div></div>
+        </div>
+        <div class="kv"><span>Waiting</span><b>@d.WaitingCount</b></div>
+        <div class="kv"><span>Doctors on duty</span><b>@d.ServersOnDuty</b></div>
+        <div class="kv"><span>Wait if you join now</span><b>@(d.ServersOnDuty == 0 ? "No doctor" : Ui.Eta(d.EstWaitNew))</b></div>
+        @if (d.AcceptingTokens && d.ServersOnDuty > 0)
+        {
+            <a class="btn btn-light btn-sm" asp-controller="Token" asp-action="Create" asp-route-dept="@d.Id">Get token</a>
+        }
+        else
+        {
+            <span class="badge st-cancelled">@(d.AcceptingTokens ? "No doctor on duty" : "Not taking tokens")</span>
+        }
+    </div>
+}
+</div>

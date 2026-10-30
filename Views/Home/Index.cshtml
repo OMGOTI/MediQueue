@@ -1,0 +1,27 @@
+@model List<DeptBoard>
+@{ ViewData["Title"] = "Home"; }
+
+<section class="hero">
+    <h1>Skip the crowd. Wait where you are comfortable.</h1>
+    <p>Take a token from your phone, see your real position and waiting time, and get called by number when it is your turn. Seniors, pregnant women, disabled patients and emergencies are seen first.</p>
+    <div class="row mt">
+        <a class="btn btn-lg" asp-controller="Token" asp-action="Create">Get a token</a>
+        <a class="btn btn-lg btn-ghost" asp-controller="Token" asp-action="Track">Track my token</a>
+        <a class="btn btn-lg btn-ghost" asp-controller="Display" asp-action="Index">Open display board</a>
+    </div>
+</section>
+
+<div class="row between mb">
+    <h2>Departments right now</h2>
+    <span class="muted small">Updates live</span>
+</div>
+<div data-live-url="@Url.Action("Departments", "Home")">
+    @await Html.PartialAsync("_Departments", Model)
+</div>
+
+<h2 class="mt">How it works</h2>
+<div class="steps mb">
+    <div class="step"><h3>Take a token</h3><p class="muted">Choose the department, enter name and mobile. No app, no sign-up.</p></div>
+    <div class="step"><h3>Watch your turn</h3><p class="muted">Your page shows how many are ahead and an honest waiting time that updates by itself.</p></div>
+    <div class="step"><h3>Walk in when called</h3><p class="muted">Your number appears on the display board with a voice call and your room.</p></div>
+</div>

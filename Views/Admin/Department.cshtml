@@ -1,0 +1,27 @@
+@model DepartmentForm
+@{ ViewData["Title"] = Model.Id == 0 ? "New department" : "Edit department"; }
+<div class="form-mid">
+<h1>@ViewData["Title"]</h1>
+<form asp-action="Department" method="post" class="card" novalidate>
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="errors"><ul>
+        @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors)) { <li>@e.ErrorMessage</li> }
+        </ul></div>
+    }
+    <input type="hidden" asp-for="Id" />
+    <div class="grid g2">
+        <div class="field"><label asp-for="Name">Name</label><input asp-for="Name" type="text" /></div>
+        <div class="field"><label asp-for="Code">Code (2–3 letters)</label><input asp-for="Code" type="text" maxlength="3" style="text-transform:uppercase" /></div>
+        <div class="field"><label asp-for="Room">Room</label><input asp-for="Room" type="text" /></div>
+        <div class="field"><label asp-for="AvgMinutes">Default minutes per patient</label><input asp-for="AvgMinutes" type="number" min="2" max="60" /></div>
+        <div class="field"><label asp-for="Icon">Icon (emoji)</label><input asp-for="Icon" type="text" maxlength="4" /></div>
+    </div>
+    <label class="check"><input asp-for="AcceptingTokens" /> Taking new tokens</label>
+    <label class="check mb"><input asp-for="IsActive" /> Visible to patients</label>
+    <div class="row">
+        <button class="btn" type="submit">Save</button>
+        <a class="btn btn-light" asp-action="Departments">Cancel</a>
+    </div>
+</form>
+</div>

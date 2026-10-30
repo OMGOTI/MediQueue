@@ -1,0 +1,28 @@
+@model List<Department>
+@{ ViewData["Title"] = "Departments"; }
+<div class="row between mb">
+    <h1>Departments</h1>
+    <div class="row">
+        <a class="btn btn-light" asp-action="Index">← Dashboard</a>
+        <a class="btn" asp-action="Department">+ New department</a>
+    </div>
+</div>
+<div class="card">
+    <div class="tbl-wrap"><table>
+        <thead><tr><th>Name</th><th>Code</th><th>Room</th><th>Default minutes</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var d in Model)
+        {
+            <tr>
+                <td>@d.Icon <b>@d.Name</b></td><td>@d.Code</td><td>@d.Room</td><td>@d.AvgMinutes</td>
+                <td>
+                    @if (!d.IsActive) { <span class="badge st-cancelled">Hidden</span> }
+                    else if (!d.AcceptingTokens) { <span class="badge st-called">Not taking tokens</span> }
+                    else { <span class="badge st-completed">Open</span> }
+                </td>
+                <td><a class="btn btn-light btn-sm" asp-action="Department" asp-route-id="@d.Id">Edit</a></td>
+            </tr>
+        }
+        </tbody>
+    </table></div>
+</div>

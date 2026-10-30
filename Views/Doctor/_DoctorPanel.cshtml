@@ -1,0 +1,86 @@
+@model DoctorPanel
+<div class="row between mb">
+    <div>
+        <h1>@Model.FullName</h1>
+        <div class="muted">@Model.Icon @Model.DepartmentName · @Model.Room · @(Model.OnDuty ? "On duty" : "On break")</div>
+    </div>
+    <form asp-action="Duty" method="post">
+        <button class="btn @(Model.OnDuty ? "btn-amber" : "")" type="submit">@(Model.OnDuty ? "☕ Go on break" : "▶ Back on duty")</button>
+    </form>
+</div>
+
+<div class="grid g4 mb">
+    <div class="tile"><b>@Model.Waiting.Count</b><span>Waiting</span></div>
+    <div class="tile"><b>@Model.CompletedToday</b><span>Seen today</span></div>
+    <div class="tile"><b>@Model.SkippedToday</b><span>Missed today</span></div>
+    <div class="tile"><b>@Model.AvgMinutes.ToString("0.#")</b><span>Avg minutes per patient</span></div>
+</div>
+
+@if (Model.Current != null)
+{
+    var c = Model.Current;
+    <div class="card now-card mb">
+        <div class="muted">@(c.Status == TokenStatus.Called ? "Called – waiting for the patient to come in" : "In consultation")</div>
+        <div class="row between">
+            <div>
+                <div class="now-code">@c.Code</div>
+                <b>@c.PatientName</b> · @(c.Age > 0 ? c.Age + " yrs · " : "")@c.Gender
+                @if (c.Priority != PriorityLevel.Normal) { <span class="badge @(c.Priority == PriorityLevel.Emergency ? "pri-emergency" : "pri")">@Ui.PriorityText(c.Priority)</span> }
+                @if (!string.IsNullOrWhiteSpace(c.Reason)) { <div class="muted">Reason: @c.Reason</div> }
+            </div>
+            <span class="badge @Ui.StatusClass(c.Status)">@Ui.StatusText(c.Status)</span>
+        </div>
+        <div class="big-actions">
+            @if (c.Status == TokenStatus.Called)
+            {
+                <form asp-action="Start" method="post"><input type="hidden" name="id" value="@c.Id" /><button class="btn btn-lg" type="submit">Patient arrived – start</button></form>
+                <form asp-action="Recall" method="post"><input type="hidden" name="id" value="@c.Id" /><button class="btn btn-amber" type="submit">📣 Call again</button></form>
+                <form asp-action="Skip" method="post" data-confirm="Mark @c.Code as missed?"><input type="hidden" name="id" value="@c.Id" /><button class="btn btn-grey" type="submit">Not here – skip</button></form>
+            }
+            else
+            {
+                <form asp-action="Complete" method="post"><input type="hidden" name="id" value="@c.Id" /><button class="btn btn-lg" type="submit">✔ Finish consultation</button></form>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="card mb center">
+        <p class="muted">@(Model.OnDuty ? (Model.Waiting.Count == 0 ? "No patients are waiting." : "You are free. Call the next patient.") : "You are on break. Patients are not sent to you.")</p>
+        <form asp-action="CallNext" method="post">
+            <button class="btn btn-lg" type="submit" disabled="@(!Model.OnDuty || Model.Waiting.Count == 0)">📣 Call next patient</button>
+        </form>
+    </div>
+}
+
+<div class="card mb">
+    <h2>Waiting in @Model.DepartmentName</h2>
+    @if (Model.Waiting.Count == 0) { <div class="empty">Nobody is waiting.</div> }
+    else
+    {
+    <div class="tbl-wrap"><table>
+        <thead><tr><th>Pos.</th><th>Token</th><th>Patient</th><th>Priority</th><th>Reason</th><th>Waiting since</th></tr></thead>
+        <tbody>
+        @foreach (var r in Model.Waiting)
+        {
+            <tr><td>@r.Position</td><td><b>@r.Token.Code</b></td><td>@r.Token.PatientName@(r.Token.Age > 0 ? $" ({r.Token.Age})" : "")</td>
+                <td>@Ui.PriorityText(r.Token.Priority)</td><td>@r.Token.Reason</td><td>@Ui.Time(r.Token.CreatedAt)</td></tr>
+        }
+        </tbody>
+    </table></div>
+    }
+</div>
+
+@if (Model.RecentDone.Count > 0)
+{
+    <div class="card">
+        <h2>Recently finished</h2>
+        <div class="tbl-wrap"><table>
+            <thead><tr><th>Token</th><th>Patient</th><th>Started</th><th>Finished</th></tr></thead>
+            <tbody>
+            @foreach (var t in Model.RecentDone) { <tr><td><b>@t.Code</b></td><td>@t.PatientName</td><td>@Ui.Time(t.StartedAt)</td><td>@Ui.Time(t.CompletedAt)</td></tr> }
+            </tbody>
+        </table></div>
+    </div>
+}

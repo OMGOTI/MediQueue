@@ -1,0 +1,27 @@
+@model TokenStatusInfo
+@{
+    ViewData["Title"] = "Token " + Model.Token.Code;
+    var link = $"{Context.Request.Scheme}://{Context.Request.Host}/t/{Model.Token.PublicId}";
+}
+<div class="form-mid">
+    <div class="card" data-live-url="@Url.Action("StatusPartial", "Token", new { id = Model.Token.PublicId })" data-live-dept="@Model.Token.DepartmentId">
+        @await Html.PartialAsync("_Status", Model)
+    </div>
+
+    <div class="card mt">
+        <div class="grid g2" style="align-items:center">
+            <div class="center">
+                <div class="qr" data-qr="@link"></div>
+                <div class="muted small">Scan to open on another phone</div>
+            </div>
+            <div>
+                <label for="lnk">Your token link</label>
+                <div class="copybox">
+                    <input id="lnk" type="text" readonly data-fill-url="@link" onclick="this.select()" />
+                </div>
+                <p class="muted small mt">Save this link. Lost it? Use “Track my token” with your number and mobile.</p>
+                <button class="btn btn-light btn-sm no-print" type="button" data-print>🖨 Print slip</button>
+            </div>
+        </div>
+    </div>
+</div>

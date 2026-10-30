@@ -1,0 +1,29 @@
+@model ReceptionModel
+@{
+    ViewData["Title"] = "Reception";
+    string[][] tabs = { new[] { "active", "Active" }, new[] { "waiting", "Waiting" }, new[] { "missed", "Missed calls" }, new[] { "done", "Completed" }, new[] { "cancelled", "Cancelled" }, new[] { "all", "All today" } };
+}
+<div class="row between mb">
+    <h1>Reception desk</h1>
+    <a class="btn" asp-action="NewToken">+ Walk-in token</a>
+</div>
+
+<form method="get" class="row mb" asp-action="Index">
+    <input type="hidden" name="status" value="@Model.Status" />
+    <label for="dept" style="margin:0">Department</label>
+    <select id="dept" name="dept" onchange="this.form.submit()" style="width:auto">
+        <option value="">All departments</option>
+        @foreach (var d in Model.Departments) { <option value="@d.Id" selected="@(Model.Dept == d.Id)">@d.Icon @d.Name</option> }
+    </select>
+</form>
+
+<div class="tabs">
+    @foreach (var t in tabs)
+    {
+        <a class="tab @(Model.Status == t[0] ? "on" : "")" asp-action="Index" asp-route-dept="@Model.Dept" asp-route-status="@t[0]">@t[1]</a>
+    }
+</div>
+
+<div class="card" data-live-url="@Url.Action("Partial", "Reception", new { dept = Model.Dept, status = Model.Status })">
+    @await Html.PartialAsync("_ReceptionTable", Model)
+</div>

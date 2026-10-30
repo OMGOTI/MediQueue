@@ -1,0 +1,33 @@
+@model List<DeptBoard>
+<div class="board-grid">
+@foreach (var d in Model)
+{
+    var called = d.Serving.FirstOrDefault(s => s.Status == TokenStatus.Called);
+    var speak = called == null ? "" : $"Token {Ui.Speak(called.Code)}, please go to {called.Room}";
+    <div class="bcard @(d.ServersOnDuty == 0 ? "closed" : "")" data-dept="@d.Id" data-stamp="@d.CallStamp" data-speak="@speak">
+        <div class="bcard-head">
+            <span class="ic">@d.Icon</span>
+            <div><b>@d.Name</b><span>@d.Room</span></div>
+        </div>
+        <div class="bnow-label">NOW SERVING</div>
+        <div class="bnow">
+            @if (d.Serving.Count == 0)
+            {
+                <span class="bempty">@(d.ServersOnDuty == 0 ? "No doctor on duty" : "Waiting for next patient")</span>
+            }
+            @foreach (var s in d.Serving)
+            {
+                <div class="bnum @(s.Status == TokenStatus.Called ? "called" : "")">@s.Code<small>@s.Room@(s.Status == TokenStatus.Called ? " · PLEASE COME" : "")</small></div>
+            }
+        </div>
+        @if (d.Next.Count > 0)
+        {
+            <div class="bnext">Next: @foreach (var n in d.Next) { <span class="chip">@n</span> }</div>
+        }
+        <div class="bfoot">
+            <span>@d.WaitingCount waiting</span>
+            <span>@(d.ServersOnDuty == 0 ? "—" : "Wait " + Ui.Eta(d.EstWaitNew))</span>
+        </div>
+    </div>
+}
+</div>

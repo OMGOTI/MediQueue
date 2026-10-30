@@ -1,0 +1,74 @@
+@model TokenStatusInfo
+@{
+    var t = Model.Token;
+    var active = t.Status is TokenStatus.Waiting or TokenStatus.Called or TokenStatus.InConsultation;
+}
+<div class="token-big">
+    <div class="muted">@t.DepartmentIcon @t.DepartmentName@(string.IsNullOrEmpty(t.Room) ? "" : " · " + t.Room)</div>
+    <div class="token-code">@t.Code</div>
+    <div class="token-meta">@t.PatientName · issued @Ui.Time(t.CreatedAt)</div>
+    <div class="mt">
+        <span class="badge @Ui.StatusClass(t.Status)">@Ui.StatusText(t.Status)</span>
+        @if (t.Priority != PriorityLevel.Normal)
+        {
+            <span class="badge @(t.Priority == PriorityLevel.Emergency ? "pri-emergency" : "pri")">@Ui.PriorityText(t.Priority)</span>
+        }
+    </div>
+</div>
+
+@switch (t.Status)
+{
+    case TokenStatus.Waiting:
+        <div class="stat-row">
+            <div class="stat"><b>@(Model.Position?.ToString() ?? "–")</b><span>Your position</span></div>
+            <div class="stat"><b>@(Model.Ahead?.ToString() ?? "–")</b><span>People ahead</span></div>
+            <div class="stat"><b>@(Model.NoDoctor ? "–" : Ui.Eta(Model.EtaMinutes))</b><span>Estimated wait</span></div>
+        </div>
+        @if (Model.NoDoctor)
+        {
+            <div class="alert alert-bad">No doctor is on duty in this department right now. Your place is kept; please ask the reception desk.</div>
+        }
+        else if (Model.Position == 1)
+        {
+            <div class="alert alert-info">You are next. Please stay near the @t.DepartmentName waiting area.</div>
+        }
+        else
+        {
+            <div class="alert alert-info">The time is an estimate based on today’s real consultation times. It updates by itself.</div>
+        }
+        break;
+    case TokenStatus.Called:
+        <div class="alert alert-call">📣 It is your turn!<br />Please go to <b>@t.Room</b> now.</div>
+        <p class="muted center small">If you do not arrive within @QueueService.CallTimeoutMinutes minutes the call is marked as missed.</p>
+        break;
+    case TokenStatus.InConsultation:
+        <div class="alert alert-ok center">You are with the doctor now (@t.Room).</div>
+        break;
+    case TokenStatus.Completed:
+        <div class="alert alert-ok center">Consultation finished. Get well soon! 💚</div>
+        break;
+    case TokenStatus.Skipped:
+        <div class="alert alert-bad center">You missed your call. Please meet the reception desk and they will put you back in the queue.</div>
+        break;
+    case TokenStatus.Cancelled:
+        <div class="alert alert-bad center">This token was cancelled.</div>
+        break;
+}
+
+@if (Model.NowServing.Count > 0 && active)
+{
+    <div class="mt">
+        <div class="muted small">Now serving in @t.DepartmentName</div>
+        <div class="serving">
+            @foreach (var s in Model.NowServing) { <span class="chip">@s.Code · @s.Room</span> }
+        </div>
+    </div>
+}
+
+@if (t.Status == TokenStatus.Waiting)
+{
+    <form asp-controller="Token" asp-action="Cancel" method="post" class="mt no-print" data-confirm="Cancel this token? You will lose your place.">
+        <input type="hidden" name="publicId" value="@t.PublicId" />
+        <button class="btn btn-light btn-sm" type="submit">Cancel my token</button>
+    </form>
+}

@@ -1,0 +1,25 @@
+@model LoginForm
+@{ ViewData["Title"] = "Staff login"; }
+<div class="form-narrow">
+<h1>Staff login</h1>
+<p class="muted">For reception, doctors and admin. Patients do not need to log in.</p>
+<form asp-action="Login" method="post" class="card" novalidate>
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="errors"><ul>
+        @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors)) { <li>@e.ErrorMessage</li> }
+        </ul></div>
+    }
+    <input type="hidden" asp-for="ReturnUrl" />
+    <div class="field"><label asp-for="Username">Username</label><input asp-for="Username" type="text" autocomplete="username" autocapitalize="none" autofocus /></div>
+    <div class="field"><label asp-for="Password">Password</label><input asp-for="Password" type="password" autocomplete="current-password" /></div>
+    <button class="btn" type="submit">Login</button>
+</form>
+@if (Context.Request.Host.Host is "localhost" or "127.0.0.1")
+{
+    <div class="card mt small">
+        <b>Demo logins</b> (change them in Admin → Staff)<br />
+        admin / admin123 · reception / reception123 · dr.sharma / doctor123
+    </div>
+}
+</div>

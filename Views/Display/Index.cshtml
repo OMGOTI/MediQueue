@@ -1,0 +1,16 @@
+@model List<DeptBoard>
+@{
+    Layout = "_BoardLayout";
+    int? dept = ViewBag.Dept;
+}
+<div class="board-top">
+    <h1><span class="brand-mark">+</span> MediQueue · Now serving</h1>
+    <div class="board-right">
+        <button id="sound-btn" class="sound-btn" type="button">🔇 Sound off</button>
+        <div id="board-clock"></div>
+    </div>
+</div>
+<div id="board" data-live-url="@Url.Action("Partial", "Display", new { dept })">
+    @await Html.PartialAsync("_Board", Model)
+</div>
+<div class="board-foot">Please watch for your number. Press “Sound” once on this screen to enable voice calls.</div>

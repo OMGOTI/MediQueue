@@ -1,0 +1,17 @@
+@model TrackForm
+@{ ViewData["Title"] = "Track my token"; }
+<div class="form-narrow">
+<h1>Track my token</h1>
+<p class="muted">Lost the page? Enter your token number and mobile to open it again.</p>
+<form asp-action="Track" method="post" class="card" novalidate>
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="errors"><ul>
+        @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors)) { <li>@e.ErrorMessage</li> }
+        </ul></div>
+    }
+    <div class="field"><label asp-for="Code">Token number</label><input asp-for="Code" type="text" placeholder="GM-012" autocapitalize="characters" /></div>
+    <div class="field"><label asp-for="Phone">Mobile number</label><input asp-for="Phone" type="tel" inputmode="numeric" maxlength="10" /></div>
+    <button class="btn" type="submit">Show my token</button>
+</form>
+</div>

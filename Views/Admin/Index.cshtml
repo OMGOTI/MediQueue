@@ -1,0 +1,78 @@
+@model AdminStats
+@{
+    ViewData["Title"] = "Admin";
+    var maxH = Math.Max(1, Model.HourlyToday.Max());
+    var h0 = 7; var h1 = 21;
+    for (var i = 0; i < Model.HourlyToday.Length; i++) if (Model.HourlyToday[i] > 0) { h0 = Math.Min(h0, i); h1 = Math.Max(h1, i); }
+    var maxD = Math.Max(1, Model.Last7Days.Max(d => d.Total));
+}
+<div class="row between mb">
+    <h1>Admin dashboard</h1>
+    <div class="row">
+        <a class="btn btn-light" asp-action="Staff">Staff</a>
+        <a class="btn btn-light" asp-action="Departments">Departments</a>
+    </div>
+</div>
+
+@if (Model.UsingDemoPasswords)
+{
+    <div class="flash flash-err">Some accounts still use the demo password. Change them in <a asp-action="Staff">Staff</a> before real use.</div>
+}
+
+<div class="grid g4 mb">
+    <div class="tile"><b>@Model.TotalToday</b><span>Tokens today</span></div>
+    <div class="tile"><b>@Model.WaitingNow</b><span>Waiting now</span></div>
+    <div class="tile"><b>@Model.InProgressNow</b><span>With a doctor / called</span></div>
+    <div class="tile"><b>@Model.CompletedToday</b><span>Completed today</span></div>
+    <div class="tile"><b>@Model.SkippedToday</b><span>Missed calls</span></div>
+    <div class="tile"><b>@Model.CancelledToday</b><span>Cancelled</span></div>
+    <div class="tile"><b>@(Model.AvgWaitMinutes.HasValue ? Model.AvgWaitMinutes.Value.ToString("0") + " min" : "–")</b><span>Average wait before call</span></div>
+    <div class="tile"><b>@(Model.AvgConsultMinutes.HasValue ? Model.AvgConsultMinutes.Value.ToString("0.#") + " min" : "–")</b><span>Average consultation</span></div>
+</div>
+
+<div class="grid g2 mb">
+    <div class="card">
+        <h2>Arrivals by hour (today)</h2>
+        <div class="bars">
+            @for (var h = h0; h <= h1; h++)
+            {
+                var v = Model.HourlyToday[h];
+                <div class="bar" title="@h:00 – @v tokens"><em>@(v > 0 ? v.ToString() : "")</em><i style="height:@(v * 100 / maxH)%"></i><span>@h</span></div>
+            }
+        </div>
+    </div>
+    <div class="card">
+        <h2>Last 7 days</h2>
+        <div class="bars">
+            @foreach (var d in Model.Last7Days)
+            {
+                <div class="bar" title="@d.Label – @d.Total tokens, @d.Completed completed"><em>@(d.Total > 0 ? d.Total.ToString() : "")</em><i style="height:@(d.Total * 100 / maxD)%"></i><span>@d.Label</span></div>
+            }
+        </div>
+        <p class="muted small mt">Dark bar = tokens issued that day.</p>
+    </div>
+</div>
+
+<div class="card mb">
+    <h2>Departments today</h2>
+    <p class="muted small">Doctors on duty: @Model.DoctorsOnDuty of @Model.DoctorsTotal</p>
+    <div class="tbl-wrap"><table>
+        <thead><tr><th>Department</th><th>Tokens</th><th>Waiting</th><th>Completed</th><th>Missed</th><th>Doctors on duty</th><th>Avg min</th></tr></thead>
+        <tbody>
+        @foreach (var d in Model.Depts)
+        {
+            <tr><td>@d.Icon @d.Name (@d.Code)</td><td>@d.Total</td><td>@d.Waiting</td><td>@d.Completed</td><td>@d.Skipped</td><td>@d.Doctors</td><td>@d.AvgMinutes.ToString("0.#")</td></tr>
+        }
+        </tbody>
+    </table></div>
+</div>
+
+<div class="card">
+    <h2>Demo tools</h2>
+    <p class="muted">Useful to try the system without real patients. Do not use on a live hospital system.</p>
+    <div class="row">
+        <form asp-action="DemoPatients" method="post"><button class="btn btn-light" type="submit">Add 12 demo patients</button></form>
+        <form asp-action="DemoHistory" method="post"><button class="btn btn-light" type="submit">Add last 7 days history</button></form>
+        <form asp-action="ClearToday" method="post" data-confirm="Remove ALL of today's tokens?"><button class="btn btn-red" type="submit">Clear today's tokens</button></form>
+    </div>
+</div>

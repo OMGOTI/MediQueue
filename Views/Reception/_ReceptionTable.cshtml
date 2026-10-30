@@ -1,0 +1,52 @@
+@model ReceptionModel
+@if (Model.Rows.Count == 0)
+{
+    <div class="empty">No tokens here.</div>
+}
+else
+{
+<div class="tbl-wrap">
+<table>
+    <thead><tr><th>Token</th><th>Patient</th><th>Department</th><th>Priority</th><th>Status</th><th>Pos.</th><th>Wait</th><th>Issued</th><th>Actions</th></tr></thead>
+    <tbody>
+    @foreach (var r in Model.Rows)
+    {
+        var t = r.Token;
+        var waiting = t.Status == TokenStatus.Waiting;
+        <tr>
+            <td><b>@t.Code</b></td>
+            <td>@t.PatientName<div class="muted small">@t.Phone@(t.Age > 0 ? $" · {t.Age}y" : "")</div></td>
+            <td>@t.DepartmentIcon @t.DepartmentName</td>
+            <td>
+                @if (waiting)
+                {
+                    <form asp-action="Priority" method="post">
+                        <input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="dept" value="@Model.Dept" /><input type="hidden" name="status" value="@Model.Status" />
+                        <select name="level" onchange="this.form.submit()" style="width:auto;padding:4px 8px;font-size:.85rem">
+                            @foreach (var p in Enum.GetValues<PriorityLevel>()) { <option value="@p" selected="@(p == t.Priority)">@Ui.PriorityText(p)</option> }
+                        </select>
+                    </form>
+                }
+                else { <span>@Ui.PriorityText(t.Priority)</span> }
+            </td>
+            <td><span class="badge @Ui.StatusClass(t.Status)">@Ui.StatusText(t.Status)</span>@(t.ServedByName != null ? Html.Raw("<div class=\"muted small\">" + Html.Encode(t.ServedByName) + "</div>") : null)</td>
+            <td>@(r.Position?.ToString() ?? "–")</td>
+            <td>@(r.Position == null ? "–" : Ui.Eta(r.EtaMinutes))</td>
+            <td>@Ui.Time(t.CreatedAt)</td>
+            <td>
+                <a class="btn btn-light btn-sm" asp-controller="Token" asp-action="Status" asp-route-publicId="@t.PublicId" target="_blank">Slip</a>
+                @if (t.Status == TokenStatus.Skipped)
+                {
+                    <form asp-action="Requeue" method="post"><input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="dept" value="@Model.Dept" /><input type="hidden" name="status" value="@Model.Status" /><button class="btn btn-sm" type="submit">Back in queue</button></form>
+                }
+                @if (t.Status is TokenStatus.Waiting or TokenStatus.Called or TokenStatus.Skipped)
+                {
+                    <form asp-action="Cancel" method="post" data-confirm="Cancel token @t.Code?"><input type="hidden" name="id" value="@t.Id" /><input type="hidden" name="dept" value="@Model.Dept" /><input type="hidden" name="status" value="@Model.Status" /><button class="btn btn-red btn-sm" type="submit">Cancel</button></form>
+                }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+</div>
+}
